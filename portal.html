@@ -46,6 +46,7 @@ body{background:var(--black);color:var(--text);font-family:'DM Mono',monospace;m
 .nav-tab.active{background:var(--gold);color:var(--black);font-weight:500}
 .nav-tab:hover:not(.active){color:var(--text);background:var(--surface3)}
 .nav-tab.atab{color:var(--blue)}.nav-tab.atab.active{background:var(--blue);color:#fff}
+.nav-tab.stab{color:var(--green)}.nav-tab.stab.active{background:var(--green);color:var(--black)}
 .nav-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .user-pill{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 11px 4px 5px}
 .uav{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--black)}
@@ -219,6 +220,34 @@ textarea{resize:none;height:64px}
 .ni{font-size:16px}
 .nt strong{display:block;color:var(--gold);margin-bottom:1px;font-size:11px;letter-spacing:.1em}
 .nt span{color:var(--text-muted)}
+
+.color-swatch{width:24px;height:24px;border-radius:5px;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+.color-swatch.sel{border-color:#fff;transform:scale(1.15)}
+.color-swatch:hover{transform:scale(1.1)}
+.shift-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:5px;font-size:10px;font-weight:500;letter-spacing:.08em;margin:2px}
+.cal-cell{border:1px solid var(--border);padding:6px;min-height:90px;cursor:pointer;transition:background .15s;position:relative}
+.cal-cell:hover{background:var(--surface2)}
+.cal-cell.today{background:rgba(201,168,76,.05);border-color:var(--gold-dim)}
+.cal-cell.other-month{opacity:.35}
+.cal-cell.past{opacity:.5;cursor:default}
+.cal-day-num{font-size:12px;font-weight:500;margin-bottom:4px;color:var(--text-muted)}
+.cal-cell.today .cal-day-num{color:var(--gold)}
+.cal-shift-chip{font-size:9px;padding:3px 6px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.04em}
+.cal-empty-dot{width:6px;height:6px;border-radius:50%;background:rgba(217,79,79,.4);display:inline-block;margin:2px}
+.shift-assign-row{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border)}
+.shift-assign-row:last-child{border-bottom:none}
+.shift-label{font-size:12px;font-weight:500}
+.shift-time{font-size:10px;color:var(--text-muted);margin-top:2px}
+.my-shift-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px}
+.my-shift-card.today-shift{border-color:var(--gold-dim);background:rgba(201,168,76,.04)}
+.my-shift-date{min-width:54px;text-align:center;background:var(--surface2);border-radius:8px;padding:8px 10px}
+.msd-day{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--gold);line-height:1}
+.msd-mon{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-top:2px}
+.my-shift-info{flex:1}
+.msi-name{font-size:14px;font-weight:500;margin-bottom:3px}
+.msi-time{font-size:11px;color:var(--text-muted)}
+.today-badge{font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:3px;background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 </style>
 </head>
@@ -229,6 +258,7 @@ textarea{resize:none;height:64px}
   <div class="logo">Valet <span>Portal</span></div>
   <div class="nav-tabs" id="navTabs">
     <button class="nav-tab active" id="tabV" onclick="swTab('valet',this)">🗝 Check-In</button>
+    <button class="nav-tab stab" id="tabS" style="display:none" onclick="swTab('shifts',this)">📅 My Shifts</button>
     <button class="nav-tab atab" id="tabA" style="display:none" onclick="swTab('admin',this)">⚙️ Admin</button>
   </div>
   <div class="nav-right">
@@ -312,7 +342,10 @@ textarea{resize:none;height:64px}
               <div class="fg2"><label>Employee ID</label><input id="nEId" placeholder="V001"></div>
             </div>
             <div class="fg2"><label>Email *</label><input id="nEm" type="email" placeholder="rahul@hotel.com"></div>
-            <div class="fg2"><label>Password *</label><input id="nPw" type="password" placeholder="Min 6 characters"></div>
+            <div class="cr-row">
+              <div class="fg2"><label>Password *</label><input id="nPw" type="password" placeholder="Min 6 characters"></div>
+              <div class="fg2"><label>Mobile (for shift SMS)</label><input id="nPh" type="tel" placeholder="10-digit number"></div>
+            </div>
             <button class="btn-cr" id="crBtn" onclick="createValet()">Create Account →</button>
             <div class="cr-res" id="crRes"></div>
           </div>
@@ -384,6 +417,104 @@ textarea{resize:none;height:64px}
   </div>
 </div>
 
+
+<!-- SHIFTS VIEW — visible to all logged in users -->
+<div class="view" id="shiftsView">
+  <div class="al">
+
+    <!-- MY SCHEDULE (valet view) -->
+    <div id="myScheduleSection">
+      <div class="ah" style="margin-bottom:20px">
+        <div class="at">My <span>Schedule</span></div>
+        <div class="asub" id="myShiftSubtitle">Your upcoming shifts for the next 2 weeks</div>
+      </div>
+      <div id="myShiftToday" style="display:none;margin-bottom:20px"></div>
+      <div id="myShiftCards"></div>
+    </div>
+
+    <!-- ADMIN SHIFT SCHEDULER (admin only) -->
+    <div id="adminScheduleSection" style="display:none;margin-top:36px">
+      <div class="ah" style="margin-bottom:20px">
+        <div class="at">Shift <span>Scheduler</span></div>
+        <div class="asub">Manage shift types · Assign valets · 3-month calendar view</div>
+      </div>
+
+      <!-- Shift Type Manager -->
+      <div class="agd" style="margin-bottom:24px">
+        <div class="ac">
+          <div class="ach"><div class="act">Shift Types</div><button onclick="showAddShiftType()" style="padding:5px 12px;font-size:10px;letter-spacing:.1em;background:var(--gold);color:var(--black);border:none;border-radius:5px;cursor:pointer;font-family:'DM Mono',monospace;text-transform:uppercase">+ Add</button></div>
+          <div id="shiftTypeList" style="padding:4px 0"></div>
+        </div>
+        <div class="ac" id="shiftTypeFormCard">
+          <div class="ach"><div class="act" id="shiftFormTitle">New Shift Type</div></div>
+          <div class="acb">
+            <div class="cr-form">
+              <div class="fg2"><label>Shift Name *</label><input id="stName" placeholder="e.g. Morning, Evening"></div>
+              <div class="cr-row">
+                <div class="fg2"><label>Start Time *</label><input id="stStart" type="time" value="06:00"></div>
+                <div class="fg2"><label>End Time *</label><input id="stEnd" type="time" value="14:00"></div>
+              </div>
+              <div class="fg2"><label>Colour</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px" id="stColorPicker">
+                  <div class="color-swatch sel" data-color="#C9A84C" style="background:#C9A84C" onclick="pickColor(this,'#C9A84C')"></div>
+                  <div class="color-swatch" data-color="#4CAF7A" style="background:#4CAF7A" onclick="pickColor(this,'#4CAF7A')"></div>
+                  <div class="color-swatch" data-color="#4A8FD4" style="background:#4A8FD4" onclick="pickColor(this,'#4A8FD4')"></div>
+                  <div class="color-swatch" data-color="#E8A43A" style="background:#E8A43A" onclick="pickColor(this,'#E8A43A')"></div>
+                  <div class="color-swatch" data-color="#D94F4F" style="background:#D94F4F" onclick="pickColor(this,'#D94F4F')"></div>
+                  <div class="color-swatch" data-color="#9B59B6" style="background:#9B59B6" onclick="pickColor(this,'#9B59B6')"></div>
+                </div>
+              </div>
+              <button class="btn-cr" onclick="saveShiftType()">Save Shift Type →</button>
+              <div class="cr-res" id="stRes"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar -->
+      <div class="fat" style="margin-bottom:24px">
+        <div class="fath">
+          <div class="fattl" id="calMonthTitle">March 2026</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button onclick="calNav(-1)" style="width:30px;height:30px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:14px">‹</button>
+            <button onclick="calNav(1)"  style="width:30px;height:30px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:14px">›</button>
+          </div>
+        </div>
+        <!-- Legend -->
+        <div style="display:flex;gap:16px;padding:12px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)"><div style="width:12px;height:12px;border-radius:3px;background:rgba(76,175,122,.4)"></div>Fully Staffed</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)"><div style="width:12px;height:12px;border-radius:3px;background:rgba(232,164,58,.4)"></div>Partially Filled</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)"><div style="width:12px;height:12px;border-radius:3px;background:rgba(217,79,79,.2)"></div>Unfilled</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)"><div style="width:12px;height:12px;border-radius:3px;background:var(--surface3);border:1px solid var(--border)"></div>No Shifts Needed</div>
+        </div>
+        <!-- Day headers -->
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface2);border-bottom:1px solid var(--border)">
+          <div style="padding:9px;text-align:center;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim)">Sun</div>
+          <div style="padding:9px;text-align:center;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim)">Mon</div>
+          <div style="padding:9px;text-align:center;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim)">Tue</div>
+          <div style="padding:9px;text-align:center;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim)">Wed</div>
+          <div style="padding:9px;text-align:center;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim)">Thu</div>
+          <div style="padding:9px;text-align:center;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim)">Fri</div>
+          <div style="padding:9px;text-align:center;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim)">Sat</div>
+        </div>
+        <div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr)"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ASSIGN SHIFT MODAL -->
+<div class="mo" id="shiftMo">
+  <div class="tm" style="width:500px">
+    <div class="tmh"><h3 id="shiftMoTitle">Assign Shift</h3><button class="xbtn" onclick="closeShiftMo()">✕</button></div>
+    <div style="padding:20px">
+      <div style="font-size:13px;color:var(--gold);font-weight:500;margin-bottom:16px" id="shiftMoDate">—</div>
+      <div id="shiftSlotList"></div>
+    </div>
+  </div>
+</div>
+
 <!-- TICKET MODAL -->
 <div class="mo" id="mo">
   <div class="tm">
@@ -441,7 +572,14 @@ function init(){
       document.getElementById('urole').className=`urole ${role}`;
       document.getElementById('uav').textContent=dName[0].toUpperCase();
       document.getElementById('uav').className=`uav ${role}`;
-      if(_isAdmin){document.getElementById('tabA').style.display='';loadAdmin();}
+      document.getElementById('tabS').style.display='';
+      if(_isAdmin){
+        document.getElementById('tabA').style.display='';
+        document.getElementById('myScheduleSection').style.display='none';
+        loadAdmin();
+      } else {
+        loadMyShifts();
+      }
       fbl('cars',snap=>{cars=snap.val()||{};genSlots();renderCars();updStats();if(_isAdmin)updAdminStats();});
       fbl('meta/checkedOutCount',snap=>{coCount=snap.val()||0;document.getElementById('sCO').textContent=coCount;if(_isAdmin)document.getElementById('aOut').textContent=coCount;});
       fbg('meta/ticketCounter').then(snap=>document.getElementById('ticketNum').textContent=`#V-${(snap.val()||1000)+1}`);
@@ -453,7 +591,7 @@ function init(){
 function updT(){document.getElementById('td').textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 function updCT(){document.getElementById('ctime').textContent=new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
 async function doSignOut(){await window._signOut(window._auth);window.location.href='index.html';}
-function swTab(t,el){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.getElementById(t+'View').classList.add('active');el.classList.add('active');}
+function swTab(t,el){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.getElementById(t+'View').classList.add('active');el.classList.add('active');if(t==='shifts'){ if(!_isAdmin){ shiftsData={}; loadMyShifts(); } else { renderCalendar(); } }}
 
 function genSlots(){
   const occ=new Set(Object.values(cars).map(c=>c.slot));
@@ -603,8 +741,12 @@ function updStats(){const a=Object.values(cars);document.getElementById('sP').te
 /* ADMIN */
 function loadAdmin(){
   fbl('valets',snap=>{valets=snap.val()||{};renderVList();document.getElementById('aVct').textContent=Object.keys(valets).length;});
-  // Auto-load today's report
   setTimeout(()=>loadRangeData(), 600);
+  // Show admin scheduler section in shifts view
+  const adminSec = document.getElementById('adminScheduleSection');
+  if(adminSec) adminSec.style.display='block';
+  initShifts();
+  setTimeout(()=>checkUnfilledShifts(), 2000);
 }
 function updAdminStats(){
   const a=Object.values(cars);
@@ -622,8 +764,12 @@ function renderVList(){
     const v=valets[uid];
     return `<div class="vlt-row">
       <div class="vav">${(v.name||'?')[0].toUpperCase()}</div>
-      <div><div class="vn">${v.name||'—'} ${v.empId?`<span style="font-size:10px;color:var(--text-dim)">(${v.empId})</span>`:''}</div><div class="ve">${v.email||'—'}</div></div>
+      <div style="flex:1">
+        <div class="vn">${v.name||'—'} ${v.empId?`<span style="font-size:10px;color:var(--text-dim)">(${v.empId})</span>`:''}</div>
+        <div class="ve">${v.email||'—'} ${v.phone?`· 📱 ${v.phone}`:''}</div>
+      </div>
       <div><div class="vc">${cnt[uid]||0}</div><div class="vcl">Cars</div></div>
+      <button class="vdel" onclick="openEditValet('${uid}')" title="Edit" style="border-color:var(--gold-dim);color:var(--gold);margin-right:4px">✎</button>
       ${uid!==_user?.uid?`<button class="vdel" onclick="delValet('${uid}')" title="Delete">✕</button>`:'<div style="width:27px"></div>'}
     </div>`;
   }).join(''):`<div style="padding:18px;font-size:12px;color:var(--text-dim);text-align:center">No valets yet</div>`;
@@ -837,7 +983,8 @@ async function createValet(){
   const btn=document.getElementById('crBtn');btn.disabled=true;btn.textContent='Creating…';
   try{
     const cred=await window._createUser(window._auth,email,pass);
-    await fbs(`valets/${cred.user.uid}`,{name,email,empId:empId||'',createdAt:new Date().toISOString()});
+    const ph=(document.getElementById('nPh')?.value||'').replace(/[^0-9]/g,'').slice(-10);
+    await fbs(`valets/${cred.user.uid}`,{name,email,empId:empId||'',phone:ph||'',createdAt:new Date().toISOString()});
     showCrRes('ok',`✓ Account created for ${name}`);
     ['nNm','nEId','nEm','nPw'].forEach(id=>document.getElementById(id).value='');
     ntf('✓','Valet Created',`${name} can now log in`);
@@ -900,7 +1047,407 @@ function ntf(icon,title,msg){
   const n=document.getElementById('notif');n.classList.add('show');setTimeout(()=>n.classList.remove('show'),3400);
 }
 
+
+// ═══════════════════════════════════════════════
+// SHIFTS SYSTEM
+// ═══════════════════════════════════════════════
+let shiftTypes   = {};   // id → {name,start,end,color}
+let shiftsData   = {};   // date → { shiftTypeId → {valetUid,valetName} }
+let _editShiftTypeId = null;
+let _calYear, _calMonth;
+let _selectedColor = '#C9A84C';
+
+// ── Init ──
+function initShifts(){
+  const now = new Date();
+  _calYear  = now.getFullYear();
+  _calMonth = now.getMonth();
+
+  // Listen to shift types
+  fbl('shiftTypes', snap=>{
+    shiftTypes = snap.val()||{};
+    renderShiftTypeList();
+    renderCalendar();
+  });
+
+  // Listen to shifts data for current + next 3 months
+  for(let i=0;i<3;i++){
+    const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    fbl(`shifts/${ym}`, snap=>{
+      const data = snap.val()||{};
+      Object.entries(data).forEach(([day,v])=>{ shiftsData[`${ym}-${day}`]=v; });
+      renderCalendar();
+      loadMyShifts();
+    });
+  }
+}
+
+// ── Shift Types ──
+function showAddShiftType(){ _editShiftTypeId=null; document.getElementById('stFormTitle')&&(document.getElementById('stFormTitle').textContent='New Shift Type'); ['stName','stStart','stEnd'].forEach(id=>{ const e=document.getElementById(id); if(e){ if(id==='stStart')e.value='06:00'; else if(id==='stEnd')e.value='14:00'; else e.value=''; } }); _selectedColor='#C9A84C'; document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('sel',s.dataset.color==='#C9A84C')); }
+
+function pickColor(el,c){ _selectedColor=c; document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('sel')); el.classList.add('sel'); }
+
+async function saveShiftType(){
+  const name  = document.getElementById('stName').value.trim();
+  const start = document.getElementById('stStart').value;
+  const end   = document.getElementById('stEnd').value;
+  if(!name||!start||!end){ showStRes('err','Fill all fields'); return; }
+
+  const id = _editShiftTypeId || ('st_'+Date.now());
+  await fbs(`shiftTypes/${id}`,{id,name,start,end,color:_selectedColor});
+  showStRes('ok',`✓ ${name} saved`);
+  document.getElementById('stName').value='';
+  _editShiftTypeId=null;
+}
+
+function editShiftType(id){
+  _editShiftTypeId=id;
+  const st=shiftTypes[id];
+  document.getElementById('stName').value  = st.name;
+  document.getElementById('stStart').value = st.start;
+  document.getElementById('stEnd').value   = st.end;
+  _selectedColor = st.color||'#C9A84C';
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('sel',s.dataset.color===_selectedColor));
+  document.getElementById('shiftTypeFormCard').scrollIntoView({behavior:'smooth'});
+}
+
+async function deleteShiftType(id){
+  if(!confirm('Delete this shift type?')) return;
+  await fbr(`shiftTypes/${id}`);
+  ntf('✓','Deleted','Shift type removed');
+}
+
+function showStRes(t,m){ const el=document.getElementById('stRes'); el.textContent=m; el.className=`cr-res ${t}`; setTimeout(()=>el.className='cr-res',4000); }
+
+function renderShiftTypeList(){
+  const keys=Object.keys(shiftTypes);
+  document.getElementById('shiftTypeList').innerHTML = keys.length
+    ? keys.map(id=>{
+        const st=shiftTypes[id];
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)">
+          <div style="width:12px;height:12px;border-radius:3px;background:${st.color||'var(--gold)'};flex-shrink:0"></div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">${st.name}</div>
+            <div style="font-size:10px;color:var(--text-muted)">${st.start} – ${st.end}</div>
+          </div>
+          <button onclick="editShiftType('${id}')" style="padding:4px 9px;font-size:10px;background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:4px;cursor:pointer;font-family:'DM Mono',monospace">Edit</button>
+          <button onclick="deleteShiftType('${id}')" style="padding:4px 9px;font-size:10px;background:transparent;border:1px solid rgba(217,79,79,.3);color:var(--red);border-radius:4px;cursor:pointer;font-family:'DM Mono',monospace">✕</button>
+        </div>`;
+      }).join('')
+    : `<div style="padding:18px;font-size:12px;color:var(--text-dim);text-align:center">No shift types yet — add one →</div>`;
+}
+
+// ── Calendar ──
+function calNav(dir){
+  _calMonth += dir;
+  if(_calMonth>11){_calMonth=0;_calYear++;}
+  if(_calMonth<0) {_calMonth=11;_calYear--;}
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthTitle').textContent = `${months[_calMonth]} ${_calYear}`;
+  const firstDay = new Date(_calYear,_calMonth,1).getDay();
+  const daysInMonth = new Date(_calYear,_calMonth+1,0).getDate();
+  const today = new Date().toISOString().slice(0,10);
+  const stKeys = Object.keys(shiftTypes);
+  const totalShifts = stKeys.length;
+  let cells = '';
+
+  // Empty leading cells
+  for(let i=0;i<firstDay;i++) cells += `<div class="cal-cell other-month"></div>`;
+
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayShifts = shiftsData[dateStr]||{};
+    const assigned  = Object.keys(dayShifts).length;
+    const isPast    = dateStr < today;
+    const isToday   = dateStr === today;
+
+    let bg='';
+    if(totalShifts>0){
+      if(assigned===0)      bg='background:rgba(217,79,79,.08)';
+      else if(assigned<totalShifts) bg='background:rgba(232,164,58,.08)';
+      else                  bg='background:rgba(76,175,122,.06)';
+    }
+
+    let chips = stKeys.map(stId=>{
+      const st=shiftTypes[stId];
+      const filled=dayShifts[stId];
+      const alpha=filled?'0.85':'0.25';
+      return `<div class="cal-shift-chip" style="background:${st.color||'#C9A84C'}${filled?'33':'15'};color:${st.color||'#C9A84C'};border:1px solid ${st.color||'#C9A84C'}${filled?'55':'22'}" title="${st.name}: ${filled?filled.valetName:'Unassigned'}">${st.name.slice(0,6)}${filled?': '+filled.valetName.split(' ')[0]:'?'}</div>`;
+    }).join('');
+
+    if(!chips && totalShifts===0) chips='<div style="font-size:10px;color:var(--text-dim)">No shifts</div>';
+
+    cells += `<div class="cal-cell${isToday?' today':''}${isPast?' past':''}" style="${bg}" ${!isPast?`onclick="openShiftMo('${dateStr}')"`:''}>
+      <div class="cal-day-num">${d}</div>
+      ${chips}
+    </div>`;
+  }
+  document.getElementById('calGrid').innerHTML = cells;
+}
+
+// ── Assign Shift Modal ──
+function openShiftMo(dateStr){
+  const [y,m,d] = dateStr.split('-');
+  const dt = new Date(y,m-1,d);
+  document.getElementById('shiftMoTitle').textContent = 'Assign Shifts';
+  document.getElementById('shiftMoDate').textContent  = dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+  const stKeys = Object.keys(shiftTypes);
+  const dayShifts = shiftsData[dateStr]||{};
+
+  if(!stKeys.length){
+    document.getElementById('shiftSlotList').innerHTML = `<div style="font-size:12px;color:var(--text-dim);text-align:center;padding:20px">No shift types created yet. Add them first.</div>`;
+  } else {
+    document.getElementById('shiftSlotList').innerHTML = stKeys.map(stId=>{
+      const st = shiftTypes[stId];
+      const assigned = dayShifts[stId];
+      const vOpts = Object.entries(valets).map(([uid,v])=>`<option value="${uid}" ${assigned?.valetUid===uid?'selected':''}>${v.name}</option>`).join('');
+      return `<div class="shift-assign-row">
+        <div>
+          <div class="shift-label" style="color:${st.color||'var(--gold)'}">${st.name}</div>
+          <div class="shift-time">${st.start} – ${st.end}</div>
+        </div>
+        <select id="sa_${stId}" style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;width:100%">
+          <option value="">— Unassigned —</option>
+          ${vOpts}
+        </select>
+        <button onclick="assignShift('${dateStr}','${stId}')" style="padding:7px 12px;background:var(--gold);color:var(--black);border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;white-space:nowrap">Save</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('shiftMo').classList.add('open');
+}
+
+function closeShiftMo(){ document.getElementById('shiftMo').classList.remove('open'); }
+
+async function assignShift(dateStr, stId){
+  const uid = document.getElementById(`sa_${stId}`).value;
+  const [y,m,d] = dateStr.split('-');
+  const ym = `${y}-${m}`;
+
+  if(!uid){
+    // Unassign
+    await fbr(`shifts/${ym}/${d}/${stId}`);
+    delete (shiftsData[dateStr]||{})[stId];
+    renderCalendar();
+    ntf('✓','Unassigned',`${shiftTypes[stId]?.name} on ${dateStr} cleared`);
+    return;
+  }
+
+  const vName = valets[uid]?.name || '—';
+  const st    = shiftTypes[stId];
+  const prev  = shiftsData[dateStr]?.[stId];
+
+  await fbs(`shifts/${ym}/${d}/${stId}`,{
+    valetUid:uid, valetName:vName,
+    shiftName:st.name, start:st.start, end:st.end,
+    color:st.color||'#C9A84C', assignedAt:new Date().toISOString()
+  });
+
+  if(!shiftsData[dateStr]) shiftsData[dateStr]={};
+  shiftsData[dateStr][stId]={valetUid:uid,valetName:vName,shiftName:st.name,start:st.start,end:st.end,color:st.color||'#C9A84C'};
+  renderCalendar();
+  ntf('✓','Shift Assigned',`${vName} → ${st.name} on ${dateStr}`);
+
+  // Send SMS to valet if newly assigned (not reassignment of same person)
+  if(!prev || prev.valetUid !== uid){
+    const phone = valets[uid]?.phone;
+    if(phone){
+      sendShiftSMS(phone, vName, st.name, dateStr, st.start, st.end);
+    } else {
+      ntf('📅','Shift Saved','No phone on file — SMS not sent');
+    }
+  }
+}
+
+async function sendShiftSMS(phone, valetName, shiftName, date, start, end){
+  try{
+    const [y,m,d] = date.split('-');
+    const dt = new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const msg = `Hi ${valetName}, your ${shiftName} shift is confirmed for ${dt} (${start}–${end}). -Valet Mgmt`;
+    await fetch('/.netlify/functions/send-shift-sms',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({phone, message:msg})
+    });
+  }catch(e){ console.error('Shift SMS failed:',e); }
+}
+
+// ── My Shifts (valet dashboard) ──
+async function loadMyShifts(){
+  if(!_user || _isAdmin) return;
+  const today = new Date();
+  const myShifts = [];
+
+  // Fetch directly from Firebase for each date in next 14 days
+  for(let i=0; i<14; i++){
+    const d = new Date(today); d.setDate(d.getDate()+i);
+    const dateStr = d.toISOString().slice(0,10);
+    const [y,m,day] = dateStr.split('-');
+    const ym = `${y}-${m}`;
+
+    // Try local cache first, fetch from Firebase if missing
+    let dayData = shiftsData[dateStr];
+    if(!dayData){
+      const snap = await fbg(`shifts/${ym}/${day}`);
+      dayData = snap.val()||{};
+      shiftsData[dateStr] = dayData;
+    }
+
+    Object.entries(dayData).forEach(([stId,sh])=>{
+      if(sh.valetUid === _user.uid){
+        myShifts.push({...sh, date:dateStr, stId});
+      }
+    });
+  }
+
+  // Today's shift highlight
+  const todayStr = today.toISOString().slice(0,10);
+  const todayShift = myShifts.find(s=>s.date===todayStr);
+  const todayBox = document.getElementById('myShiftToday');
+  if(todayShift){
+    todayBox.style.display='block';
+    todayBox.innerHTML=`<div style="background:rgba(201,168,76,.08);border:1px solid var(--gold-dim);border-radius:14px;padding:18px 22px;display:flex;align-items:center;gap:16px">
+      <div style="font-size:36px">⏰</div>
+      <div>
+        <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Today's Shift</div>
+        <div style="font-size:20px;font-weight:500;color:var(--gold);margin-bottom:3px">${todayShift.shiftName}</div>
+        <div style="font-size:13px;color:var(--text-muted)">${todayShift.start} – ${todayShift.end}</div>
+      </div>
+      <div style="margin-left:auto"><span class="badge bgr">ON DUTY</span></div>
+    </div>`;
+  } else { todayBox.style.display='none'; }
+
+  // Upcoming list
+  const upcoming = myShifts.filter(s=>s.date>todayStr);
+  const el = document.getElementById('myShiftCards');
+  if(!myShifts.length){
+    el.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--text-dim);font-size:13px">No shifts scheduled for the next 2 weeks</div>`;
+    return;
+  }
+  el.innerHTML = myShifts.map(s=>{
+    const dt   = new Date(s.date+'T12:00:00');
+    const isT  = s.date===todayStr;
+    const isPast = s.date<todayStr;
+    return `<div class="my-shift-card${isT?' today-shift':''}" style="${isPast?'opacity:.5':''}">
+      <div class="my-shift-date">
+        <div class="msd-day">${dt.getDate()}</div>
+        <div class="msd-mon">${dt.toLocaleDateString('en-US',{month:'short'})}</div>
+        <div style="font-size:8px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px">${dt.toLocaleDateString('en-US',{weekday:'short'})}</div>
+      </div>
+      <div class="my-shift-info">
+        <div class="msi-name" style="color:${s.color||'var(--gold)'}">${s.shiftName}</div>
+        <div class="msi-time">${s.start} – ${s.end}</div>
+      </div>
+      ${isT?'<span class="today-badge">TODAY</span>':''}
+    </div>`;
+  }).join('');
+}
+
+// ── Unfilled shift alert check (run on admin load) ──
+async function checkUnfilledShifts(){
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  const tmStr = tomorrow.toISOString().slice(0,10);
+  const [y,m,d] = tmStr.split('-');
+  const snap = await fbg(`shifts/${y}-${m}/${d}`);
+  const assigned = snap.val()||{};
+  const stKeys = Object.keys(shiftTypes);
+  const unfilled = stKeys.filter(id=>!assigned[id]);
+  if(unfilled.length>0){
+    const names = unfilled.map(id=>shiftTypes[id]?.name).join(', ');
+    ntf('⚠️','Tomorrow Unfilled',`${names} — no valet assigned`);
+  }
+}
+
+// ── Edit Valet ──
+function openEditValet(uid){
+  const v = valets[uid];
+  if(!v) return;
+  document.getElementById('evUid').value    = uid;
+  document.getElementById('evName').value   = v.name||'';
+  document.getElementById('evEmpId').value  = v.empId||'';
+  document.getElementById('evEmail').value  = v.email||'';
+  document.getElementById('evPhone').value  = v.phone||'';
+  document.getElementById('evNotes').value  = v.notes||'';
+  document.getElementById('evPw').value     = '';
+  document.getElementById('evRes').textContent = '';
+  document.getElementById('evRes').className = 'cr-res';
+  document.getElementById('editValetMo').classList.add('open');
+}
+
+function closeEditValet(){
+  document.getElementById('editValetMo').classList.remove('open');
+}
+
+async function saveEditValet(){
+  const uid    = document.getElementById('evUid').value;
+  const name   = document.getElementById('evName').value.trim();
+  const empId  = document.getElementById('evEmpId').value.trim();
+  const phone  = document.getElementById('evPhone').value.replace(/[^0-9]/g,'').slice(-10);
+  const notes  = document.getElementById('evNotes').value.trim();
+  const pw     = document.getElementById('evPw').value;
+  const res    = document.getElementById('evRes');
+
+  if(!name){ res.textContent='Name is required'; res.className='cr-res err'; return; }
+
+  const btn = document.querySelector('#editValetMo .btn-cr');
+  btn.disabled=true; btn.textContent='Saving…';
+
+  try {
+    // Update Firebase database record
+    await fbu(`valets/${uid}`, { name, empId: empId||'', phone: phone||'', notes: notes||'' });
+
+    // Update all cars and activity entries with new valet name
+    const carUpdates = {};
+    Object.entries(cars).forEach(([cid,c])=>{
+      if(c.valetUid===uid) carUpdates[`cars/${cid}/valetName`] = name;
+    });
+    if(Object.keys(carUpdates).length){
+      await firebase.database().ref().update(carUpdates);
+    }
+
+    res.textContent = '✓ Saved successfully';
+    res.className   = 'cr-res ok';
+    ntf('✓','Updated', name + ' profile saved');
+    setTimeout(()=>closeEditValet(), 1200);
+  } catch(e) {
+    res.textContent = 'Error: ' + e.message;
+    res.className   = 'cr-res err';
+  }
+
+  btn.disabled=false; btn.textContent='Save Changes →';
+}
+
 init();
 </script>
+
+<!-- EDIT VALET MODAL -->
+<div class="mo" id="editValetMo">
+  <div class="tm" style="width:460px">
+    <div class="tmh"><h3>Edit Staff Account</h3><button class="xbtn" onclick="closeEditValet()">✕</button></div>
+    <div style="padding:20px">
+      <input type="hidden" id="evUid">
+      <div class="cr-form">
+        <div class="cr-row">
+          <div class="fg2"><label>Full Name *</label><input id="evName" placeholder="Rahul Kumar"></div>
+          <div class="fg2"><label>Employee ID</label><input id="evEmpId" placeholder="V001"></div>
+        </div>
+        <div class="fg2"><label>Email</label><input id="evEmail" type="email" placeholder="rahul@hotel.com" disabled style="opacity:.5;cursor:not-allowed"></div>
+        <div class="cr-row">
+          <div class="fg2"><label>Mobile Number</label><input id="evPhone" type="tel" placeholder="10-digit number"></div>
+          <div class="fg2"><label>New Password <span style="font-size:9px;color:var(--text-dim)">(leave blank to keep)</span></label><input id="evPw" type="password" placeholder="Min 6 characters"></div>
+        </div>
+        <div class="fg2"><label>Notes / Role</label><input id="evNotes" placeholder="e.g. Senior Valet, Night Shift Lead"></div>
+        <button class="btn-cr" onclick="saveEditValet()">Save Changes →</button>
+        <div class="cr-res" id="evRes"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
