@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Valet — Retrieve Your Car</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#C9A84C;--gold-light:#E8CC7A;--gold-dim:#8A6F2E;--black:#080808;--surface:#111;--surface2:#1A1A1A;--surface3:#242424;--border:#2A2A2A;--text:#F0EDE8;--text-muted:#7A776F;--text-dim:#4A4744;--green:#4CAF7A;--amber:#E8A43A;--red:#D94F4F}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--black);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh}
+#ls{position:fixed;inset:0;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
+#ls.h{opacity:0;pointer-events:none}
+.ll{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;letter-spacing:.4em;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
+.ls{font-size:10px;letter-spacing:.25em;color:var(--text-dim);margin-bottom:28px;text-transform:uppercase}
+.ld{display:flex;gap:8px}
+.ldd{width:6px;height:6px;border-radius:50%;background:var(--gold-dim);animation:ldp 1.2s infinite}
+.ldd:nth-child(2){animation-delay:.2s}.ldd:nth-child(3){animation-delay:.4s}
+@keyframes ldp{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.hdr{padding:18px 24px;border-bottom:1px solid var(--border);background:rgba(8,8,8,.97);position:sticky;top:0;z-index:10;text-align:center}
+.hl{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;letter-spacing:.35em;color:var(--gold);text-transform:uppercase}
+.hs{font-size:9px;letter-spacing:.25em;color:var(--text-dim);text-transform:uppercase;margin-top:2px}
+.page{max-width:420px;margin:0 auto;padding:32px 20px 48px}
+.si{display:flex;align-items:center;justify-content:center;margin-bottom:36px}
+.sd{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);transition:all .3s}
+.sd.done{background:var(--gold);border-color:var(--gold);color:var(--black)}
+.sd.cur{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.1)}
+.sl{flex:1;height:1px;background:var(--border);max-width:50px}
+.sl.done{background:var(--gold-dim)}
+.scr{display:none;animation:fu .3s ease}.scr.act{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.hero{text-align:center;margin-bottom:32px}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;letter-spacing:.06em;margin-bottom:8px}
+.hero p{font-size:12px;color:var(--text-muted);line-height:1.7;letter-spacing:.04em}
+.tdet{background:var(--surface);border:1px solid var(--gold-dim);border-radius:12px;padding:16px 20px;margin-bottom:28px;display:flex;align-items:center;gap:14px}
+.tdi{width:40px;height:40px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.tdl{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px}
+.tdv{font-size:16px;font-weight:500;color:var(--gold);letter-spacing:.1em}
+.otps{margin-bottom:28px}
+.otpl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;text-align:center;display:block}
+.otpi-wrap{display:flex;gap:10px;justify-content:center}
+.otpi{width:58px;height:70px;text-align:center;font-size:28px;font-weight:500;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--gold);caret-color:var(--gold);outline:none;transition:all .2s;font-family:'DM Mono',monospace}
+.otpi:focus{border-color:var(--gold);background:var(--surface3);box-shadow:0 0 0 3px rgba(201,168,76,.12)}
+.otpi.shake{animation:shk .4s ease}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.hint{text-align:center;font-size:11px;color:var(--text-dim);margin-top:14px;line-height:1.6}
+.err{background:rgba(217,79,79,.1);border:1px solid rgba(217,79,79,.25);border-radius:8px;padding:12px 16px;font-size:12px;color:var(--red);text-align:center;margin-top:16px;display:none}
+.err.show{display:block}
+.bp{width:100%;padding:16px;background:var(--gold);color:var(--black);border:none;border-radius:10px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:12px}
+.bp:hover{background:var(--gold-light)}
+.bp:disabled{opacity:.5;cursor:not-allowed}
+.bs{width:100%;padding:13px;background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:10px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.bs:hover{border-color:var(--text-muted);color:var(--text)}
+.ccard{background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:20px;margin-bottom:24px;position:relative;overflow:hidden}
+.ccard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim))}
+.ct{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.ci{width:48px;height:48px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.vbdg{position:absolute;top:16px;right:16px;background:rgba(76,175,122,.12);color:var(--green);border:1px solid rgba(76,175,122,.25);font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:3px}
+.cdg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cdi{background:var(--surface2);border-radius:8px;padding:10px 12px}
+.cdil{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px}
+.cdiv{font-size:12px;color:var(--text);font-weight:500}
+.st{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:.06em;margin-bottom:6px}
+.ss{font-size:12px;color:var(--text-muted);margin-bottom:20px}
+.so{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.soo{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:20px 14px;cursor:pointer;transition:all .2s;text-align:center}
+.soo:hover{border-color:var(--gold-dim)}
+.soo.sel{border-color:var(--gold);background:rgba(201,168,76,.05)}
+.soo .si2{font-size:26px;margin-bottom:10px}
+.soo h3{font-size:13px;font-weight:500;letter-spacing:.08em;margin-bottom:4px}
+.soo p{font-size:11px;color:var(--text-muted);line-height:1.5}
+.soo.sel h3{color:var(--gold)}
+.tpk{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px;display:none}
+.tpk.show{display:block}
+.tpl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;display:block}
+.tsg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ts{padding:10px 6px;text-align:center;border-radius:7px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);transition:all .15s}
+.ts:hover{border-color:var(--gold-dim);color:var(--gold)}
+.ts.sel{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold)}
+.stc{width:110px;height:110px;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:40px;border:2px solid rgba(232,164,58,.3);background:rgba(232,164,58,.08)}
+.stc.pulse{animation:sp 2s infinite}
+.stc.rdy{border-color:rgba(76,175,122,.4);background:rgba(76,175,122,.08);animation:none}
+@keyframes sp{0%,100%{box-shadow:0 0 0 0 rgba(232,164,58,.3)}50%{box-shadow:0 0 0 14px rgba(232,164,58,0)}}
+.sh{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;letter-spacing:.06em;margin-bottom:6px}
+.sp{font-size:12px;color:var(--text-muted)}
+.etab{background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.etal{font-size:10px;color:var(--text-muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px}
+.etav{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--gold);font-weight:300}
+.pw{background:var(--surface2);border-radius:4px;height:3px;margin-bottom:20px;overflow:hidden}
+.pb{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:4px;transition:width 1.2s ease}
+.stps{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px}
+.stp{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border)}
+.stp:last-child{border-bottom:none}
+.stp.done{background:rgba(76,175,122,.03)}
+.stp.cur{background:rgba(232,164,58,.04)}
+.stpi{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px}
+.stpi.done{background:rgba(76,175,122,.2)}
+.stpi.cur{background:rgba(232,164,58,.2)}
+.stpi.pend{background:var(--surface2)}
+.stpt{font-size:12px;color:var(--text);flex:1}
+.stpti{font-size:10px;color:var(--text-muted)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--gold-dim);border-radius:10px;padding:12px 20px;font-size:12px;z-index:1000;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast strong{color:var(--gold);margin-right:6px}
+</style>
+</head>
+<body>
+
+<div id="ls"><div class="ll">Valet</div><div class="ls">Car Retrieval</div><div class="ld"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div></div></div>
+
+<div class="hdr"><div class="hl">Valet</div><div class="hs">Car Retrieval</div></div>
+
+<div class="page">
+  <div class="si">
+    <div class="sd done" id="sd1">✓</div><div class="sl done"></div>
+    <div class="sd cur"  id="sd2">2</div><div class="sl" id="sl2"></div>
+    <div class="sd"      id="sd3">3</div><div class="sl" id="sl3"></div>
+    <div class="sd"      id="sd4">4</div>
+  </div>
+
+  <!-- OTP SCREEN -->
+  <div class="scr act" id="s2">
+    <div class="hero"><h1>Verify Identity</h1><p>Enter the 4-digit OTP sent to your mobile number</p></div>
+    <div class="tdet" id="tdet" style="display:none">
+      <div class="tdi">🎫</div>
+      <div><div class="tdl">Ticket</div><div class="tdv" id="tdetId">—</div></div>
+    </div>
+    <div class="otps">
+      <span class="otpl">Enter OTP</span>
+      <div class="otpi-wrap">
+        <input type="text" inputmode="numeric" class="otpi" maxlength="1" id="o1">
+        <input type="text" inputmode="numeric" class="otpi" maxlength="1" id="o2">
+        <input type="text" inputmode="numeric" class="otpi" maxlength="1" id="o3">
+        <input type="text" inputmode="numeric" class="otpi" maxlength="1" id="o4">
+      </div>
+      <div class="hint">OTP was sent to your registered mobile number</div>
+    </div>
+    <div class="err" id="otpErr">Wrong OTP. Please check your SMS.</div>
+    <button class="bp" id="vBtn">Verify &amp; Continue →</button>
+  </div>
+
+  <!-- SCHEDULE SCREEN -->
+  <div class="scr" id="s3">
+    <div class="ccard">
+      <div class="vbdg">Verified ✓</div>
+      <div class="ct"><div class="ci">🚗</div><div><div style="font-size:18px;font-weight:500;letter-spacing:.15em;margin-bottom:3px" id="ccPlt">—</div><div style="font-size:11px;color:var(--text-muted)" id="ccDsc">—</div></div></div>
+      <div class="cdg">
+        <div class="cdi"><div class="cdil">Guest</div><div class="cdiv" id="ccGst">—</div></div>
+        <div class="cdi"><div class="cdil">Room</div><div class="cdiv" id="ccRm">—</div></div>
+        <div class="cdi"><div class="cdil">Slot</div><div class="cdiv" id="ccSlt" style="color:var(--gold)">—</div></div>
+        <div class="cdi"><div class="cdil">Checked In</div><div class="cdiv" id="ccTm">—</div></div>
+      </div>
+    </div>
+    <div class="st">Retrieve Your Car</div>
+    <div class="ss">When would you like your vehicle at the porch?</div>
+    <div class="so">
+      <div class="soo sel" id="oImm" onclick="selSch('immediate')"><div class="si2">⚡</div><h3>Immediate</h3><p>~10–15 min</p></div>
+      <div class="soo" id="oSch" onclick="selSch('scheduled')"><div class="si2">🕐</div><h3>Schedule</h3><p>Pick a time</p></div>
+    </div>
+    <div class="tpk" id="tpk"><span class="tpl">Select a time</span><div class="tsg" id="tsg"></div></div>
+    <button class="bp" onclick="confirmSch()">Confirm Retrieval →</button>
+  </div>
+
+  <!-- STATUS SCREEN -->
+  <div class="scr" id="s4">
+    <div style="text-align:center;margin-bottom:28px">
+      <div class="stc pulse" id="stc">🚘</div>
+      <div class="sh" id="stH">Retrieving Your Car</div>
+      <div class="sp" id="stP">Our valet is heading to your slot</div>
+    </div>
+    <div class="pw"><div class="pb" id="pb" style="width:25%"></div></div>
+    <div class="etab">
+      <div><div class="etal">Estimated Wait</div><div class="etav" id="etaV">~12 min</div></div>
+      <div style="text-align:right"><div class="etal">Slot</div><div style="font-size:20px;font-weight:500" id="etaSlt">—</div></div>
+    </div>
+    <div class="stps">
+      <div class="stp done" id="sr1"><div class="stpi done">✓</div><div class="stpt">Request Received</div><div class="stpti" id="sr1t">—</div></div>
+      <div class="stp cur"  id="sr2"><div class="stpi cur">⋯</div><div class="stpt">Valet Dispatched</div><div class="stpti">Now</div></div>
+      <div class="stp"      id="sr3"><div class="stpi pend">○</div><div class="stpt">Vehicle Retrieved</div><div class="stpti">—</div></div>
+      <div class="stp"      id="sr4"><div class="stpi pend">○</div><div class="stpt">Ready at Porch</div><div class="stpti">—</div></div>
+    </div>
+    <button class="bs" onclick="goBack()">← Request Again</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><strong id="tIcon">✓</strong><span id="tMsg">Done</span></div>
+
+<!-- Firebase loaded as regular scripts (NOT module) to avoid async timing issues -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+// ── Firebase init (compat SDK — synchronous, no module timing issues) ──
+firebase.initializeApp({
+  apiKey: "AIzaSyD9uYfsasPcqD7Vw5-HvRtH2hrP7RotPmc",
+  authDomain: "valet-7bf14.firebaseapp.com",
+  databaseURL: "https://valet-7bf14-default-rtdb.firebaseio.com",
+  projectId: "valet-7bf14",
+  storageBucket: "valet-7bf14.firebasestorage.app",
+  messagingSenderId: "260427760934",
+  appId: "1:260427760934:web:52a88df240d4145aea6de7"
+});
+const db = firebase.database();
+
+// ── State ──
+let _ticketId = null;
+let _car      = null;
+let schedMode = 'immediate';
+let selTime   = null;
+
+// ── Init ──
+window.onload = function(){
+  const params = new URLSearchParams(window.location.search);
+  _ticketId = params.get('ticket') || null;
+
+  if(_ticketId){
+    document.getElementById('tdet').style.display = 'flex';
+    document.getElementById('tdetId').textContent = _ticketId;
+  }
+
+  buildTimeSlots();
+  setupOTPInputs();
+  setTimeout(()=>{ document.getElementById('ls').classList.add('h'); document.getElementById('o1').focus(); }, 700);
+};
+
+// ── OTP inputs ──
+function setupOTPInputs(){
+  const ids = ['o1','o2','o3','o4'];
+  ids.forEach((id,i)=>{
+    const el = document.getElementById(id);
+    el.addEventListener('input', function(){
+      this.value = this.value.replace(/[^0-9]/g,'').slice(-1);
+      if(this.value && i < 3) document.getElementById(ids[i+1]).focus();
+    });
+    el.addEventListener('keydown', function(e){
+      if(e.key==='Backspace' && !this.value && i > 0) document.getElementById(ids[i-1]).focus();
+    });
+    el.addEventListener('paste', function(e){
+      e.preventDefault();
+      const txt = (e.clipboardData||window.clipboardData).getData('text').replace(/[^0-9]/g,'');
+      ids.forEach((fid,fi)=>{ document.getElementById(fid).value = txt[fi]||''; });
+      const last = Math.min(txt.length, 4) - 1;
+      if(last >= 0) document.getElementById(ids[last]).focus();
+    });
+  });
+
+  document.getElementById('vBtn').addEventListener('click', verifyOTP);
+}
+
+// ── Verify OTP ──
+async function verifyOTP(){
+  const entered = ['o1','o2','o3','o4'].map(id=>document.getElementById(id).value).join('');
+  if(entered.length < 4){ showErr('Please enter all 4 digits.'); return; }
+
+  const btn = document.getElementById('vBtn');
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  hideErr();
+
+  try {
+    if(_ticketId){
+      const snap = await db.ref('cars/' + _ticketId).get();
+      if(!snap.exists()){
+        showErr('Ticket not found. Contact valet staff.');
+        btn.disabled=false; btn.textContent='Verify & Continue →';
+        return;
+      }
+      const car = snap.val();
+      if(String(car.otp).trim() !== String(entered).trim()){
+        shakeOTP();
+        showErr('Wrong OTP. Please check your SMS and try again.');
+        btn.disabled=false; btn.textContent='Verify & Continue →';
+        return;
+      }
+      _car = car;
+    } else {
+      const snap = await db.ref('cars').get();
+      if(!snap.exists()){
+        showErr('No vehicles found. Contact valet staff.');
+        btn.disabled=false; btn.textContent='Verify & Continue →';
+        return;
+      }
+      const all = snap.val();
+      const match = Object.values(all).find(c => String(c.otp).trim() === String(entered).trim());
+      if(!match){
+        shakeOTP();
+        showErr('Wrong OTP. Please check your SMS and try again.');
+        btn.disabled=false; btn.textContent='Verify & Continue →';
+        return;
+      }
+      _car = match;
+      _ticketId = match.id;
+    }
+
+    // OTP correct
+    document.getElementById('ccPlt').textContent = _car.plate;
+    document.getElementById('ccDsc').textContent = (_car.make||'') + ' ' + (_car.model||'') + ' · ' + (_car.color||'');
+    document.getElementById('ccGst').textContent = _car.guest;
+    document.getElementById('ccRm').textContent  = 'Room ' + _car.room;
+    document.getElementById('ccSlt').textContent = _car.slot;
+    document.getElementById('ccTm').textContent  = _car.time;
+    document.getElementById('etaSlt').textContent= _car.slot;
+
+    goScreen('s3');
+    showToast('✓','Identity verified!');
+
+  } catch(e){
+    console.error('Firebase error:', e.code, e.message);
+    if(e.code === 'PERMISSION_DENIED'){
+      showErr('Database permission denied. Contact admin to fix Firebase rules.');
+    } else {
+      showErr('Error: ' + e.message);
+    }
+  }
+
+  btn.disabled=false; btn.textContent='Verify & Continue →';
+}
+
+function shakeOTP(){
+  ['o1','o2','o3','o4'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.value='';
+    el.classList.remove('shake');
+    void el.offsetWidth;
+    el.classList.add('shake');
+    setTimeout(()=>el.classList.remove('shake'),500);
+  });
+  document.getElementById('o1').focus();
+}
+
+// ── Schedule ──
+function selSch(mode){
+  schedMode=mode;
+  document.getElementById('oImm').className=`soo ${mode==='immediate'?'sel':''}`;
+  document.getElementById('oSch').className=`soo ${mode==='scheduled'?'sel':''}`;
+  document.getElementById('tpk').className=`tpk ${mode==='scheduled'?'show':''}`;
+}
+
+function buildTimeSlots(){
+  const now=new Date(),slots=[];
+  for(let i=1;i<=8;i++){
+    const t=new Date(now.getTime()+i*20*60000);
+    slots.push(t.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}));
+  }
+  document.getElementById('tsg').innerHTML=slots.map(s=>`<div class="ts" onclick="pickTime(this,'${s}')">${s}</div>`).join('');
+}
+
+function pickTime(el,t){
+  document.querySelectorAll('.ts').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel'); selTime=t;
+}
+
+async function confirmSch(){
+  if(!_car){ showToast('⚠️','Please verify OTP first'); return; }
+  if(schedMode==='scheduled'&&!selTime){ showToast('⚠️','Please select a time'); return; }
+
+  const status = schedMode==='immediate'?'requesting':'scheduled';
+  const btn = document.querySelector('#s3 .bp');
+  btn.disabled = true; btn.textContent = 'Confirming…';
+
+  try {
+    const res = await fetch('/.netlify/functions/update-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticketId: _ticketId, status, scheduledTime: selTime || null })
+    });
+    const data = await res.json();
+    if(!data.success){ showToast('❌','Failed: ' + (data.error||'unknown')); btn.disabled=false; btn.textContent='Confirm Retrieval →'; return; }
+  } catch(e) {
+    showToast('❌','Network error. Try again.'); btn.disabled=false; btn.textContent='Confirm Retrieval →'; return;
+  }
+  btn.disabled=false; btn.textContent='Confirm Retrieval →';
+
+  const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('sr1t').textContent=now;
+  document.getElementById('etaV').textContent=schedMode==='immediate'?'~12 min':selTime;
+
+  goScreen('s4');
+  showToast('🚗',schedMode==='immediate'?'Valet dispatched!':'Scheduled!');
+
+  // Live status updates
+  db.ref(`cars/${_ticketId}/status`).on('value', snap=>{
+    if(snap.val()==='ready') carReady();
+  });
+}
+
+function carReady(){
+  document.getElementById('pb').style.width='100%';
+  document.getElementById('stc').className='stc rdy';
+  document.getElementById('stc').textContent='✅';
+  document.getElementById('stH').textContent='Your Car is Ready!';
+  document.getElementById('stP').textContent='Please proceed to the main porch';
+  document.getElementById('etaV').textContent='Ready Now';
+  const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  ['sr2','sr3','sr4'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.className='stp done';
+    el.querySelector('.stpi').className='stpi done';
+    el.querySelector('.stpi').textContent='✓';
+    el.querySelector('.stpti').textContent=now;
+  });
+  showToast('🎉','Your car is waiting at the porch!');
+}
+
+function goBack(){
+  _car=null; selTime=null; schedMode='immediate';
+  ['o1','o2','o3','o4'].forEach(id=>document.getElementById(id).value='');
+  selSch('immediate');
+  document.getElementById('pb').style.width='25%';
+  document.getElementById('stc').className='stc pulse';
+  document.getElementById('stc').textContent='🚘';
+  document.getElementById('stH').textContent='Retrieving Your Car';
+  document.getElementById('stP').textContent='Our valet is heading to your slot';
+  document.getElementById('etaV').textContent='~12 min';
+  ['sr2','sr3','sr4'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.className=`stp ${i===0?'cur':''}`;
+    el.querySelector('.stpi').className=`stpi ${i===0?'cur':'pend'}`;
+    el.querySelector('.stpi').textContent=i===0?'⋯':'○';
+    el.querySelector('.stpti').textContent=i===0?'Now':'—';
+  });
+  goScreen('s2');
+  setTimeout(()=>document.getElementById('o1').focus(),300);
+}
+
+// ── Screen nav ──
+function goScreen(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('act'));
+  document.getElementById(id).classList.add('act');
+  const m={s2:2,s3:3,s4:4};
+  const step=m[id]||2;
+  [1,2,3,4].forEach(i=>{
+    const d=document.getElementById(`sd${i}`);
+    if(!d)return;
+    d.className=`sd ${i<step?'done':i===step?'cur':''}`;
+    d.textContent=i<step?'✓':i;
+  });
+  const lines=document.querySelectorAll('.sl');
+  lines.forEach((l,i)=>l.classList.toggle('done',i<step-1));
+}
+
+// ── Helpers ──
+function showErr(m){const e=document.getElementById('otpErr');e.textContent=m;e.classList.add('show');}
+function hideErr(){document.getElementById('otpErr').classList.remove('show');}
+function showToast(icon,msg){
+  document.getElementById('tIcon').textContent=icon;
+  document.getElementById('tMsg').textContent=msg;
+  const t=document.getElementById('toast');
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>

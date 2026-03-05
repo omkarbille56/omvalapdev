@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valet — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD9uYfsasPcqD7Vw5-HvRtH2hrP7RotPmc",
+  authDomain: "valet-7bf14.firebaseapp.com",
+  databaseURL: "https://valet-7bf14-default-rtdb.firebaseio.com",
+  projectId: "valet-7bf14",
+  storageBucket: "valet-7bf14.firebasestorage.app",
+  messagingSenderId: "260427760934",
+  appId: "1:260427760934:web:52a88df240d4145aea6de7"
+};
+
+const app  = initializeApp(firebaseConfig);
+const db   = getDatabase(app);
+const auth = getAuth(app);
+
+window._auth   = auth;
+window._db     = db;
+window._ref    = ref;
+window._get    = get;
+window._signIn = signInWithEmailAndPassword;
+window._onAuth = onAuthStateChanged;
+window._fbReady = true;
+window.dispatchEvent(new Event('fbReady'));
+</script>
+<style>
+:root{
+  --gold:#C9A84C;--gold-light:#E8CC7A;--gold-dim:#8A6F2E;
+  --black:#080808;--surface:#111;--surface2:#1A1A1A;--surface3:#242424;
+  --border:#2A2A2A;--text:#F0EDE8;--text-muted:#7A776F;--text-dim:#4A4744;
+  --green:#4CAF7A;--red:#D94F4F;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--black);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+
+/* BG PATTERN */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(201,168,76,.04) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(201,168,76,.03) 0%,transparent 50%);pointer-events:none}
+
+.login-wrap{width:100%;max-width:400px;padding:24px}
+
+.brand{text-align:center;margin-bottom:48px}
+.brand-logo{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;letter-spacing:.4em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.brand-sub{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-dim)}
+
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+
+.card-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:.08em;color:var(--gold-light);margin-bottom:6px}
+.card-sub{font-size:11px;color:var(--text-dim);letter-spacing:.08em;margin-bottom:28px}
+
+.form-group{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted)}
+input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:13px 16px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;outline:none;transition:all .2s;width:100%}
+input:focus{border-color:var(--gold-dim);background:var(--surface3);box-shadow:0 0 0 3px rgba(201,168,76,.08)}
+
+.btn-login{width:100%;padding:14px;background:var(--gold);color:var(--black);border:none;border-radius:8px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:8px}
+.btn-login:hover{background:var(--gold-light);transform:translateY(-1px);box-shadow:0 4px 20px rgba(201,168,76,.3)}
+.btn-login:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+.error-box{background:rgba(217,79,79,.1);border:1px solid rgba(217,79,79,.25);border-radius:8px;padding:12px 16px;font-size:12px;color:var(--red);text-align:center;margin-top:14px;display:none;letter-spacing:.04em}
+.error-box.show{display:block}
+
+.divider{height:1px;background:var(--border);margin:24px 0}
+.footer-note{font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:.08em;line-height:1.7}
+
+/* Spinner */
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Loading overlay */
+#pageLoad{position:fixed;inset:0;background:var(--black);display:flex;align-items:center;justify-content:center;z-index:100;transition:opacity .4s}
+#pageLoad.hidden{opacity:0;pointer-events:none}
+.pl-logo{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;letter-spacing:.4em;color:var(--gold);text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<div id="pageLoad"><div class="pl-logo">Valet</div></div>
+
+<div class="login-wrap">
+  <div class="brand">
+    <div class="brand-logo">Valet</div>
+    <div class="brand-sub">Premium Car Management</div>
+  </div>
+
+  <div class="login-card">
+    <div class="card-title">Staff Login</div>
+    <div class="card-sub">Sign in with your assigned credentials</div>
+
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="emailInput" placeholder="you@example.com" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="passInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
+
+    <button class="btn-login" id="loginBtn" onclick="login()">Sign In →</button>
+
+    <div class="error-box" id="errorBox">Invalid email or password</div>
+
+    <div class="divider"></div>
+    <div class="footer-note">Contact your admin if you forgot your credentials</div>
+  </div>
+</div>
+
+<script>
+function waitFB(fn){ if(window._fbReady) fn(); else window.addEventListener('fbReady',fn,{once:true}); }
+
+function init(){
+  waitFB(()=>{
+    // If already logged in, redirect
+    window._onAuth(window._auth, async user => {
+      if(user){
+        const role = await getRole(user.uid);
+        redirect(role);
+      } else {
+        document.getElementById('pageLoad').classList.add('hidden');
+      }
+    });
+  });
+}
+
+async function getRole(uid){
+  const snap = await window._get(window._ref(window._db, `admins/${uid}`));
+  return snap.val() === true ? 'admin' : 'valet';
+}
+
+function redirect(role){
+  window.location.href = 'portal.html';
+}
+
+async function login(){
+  const email = document.getElementById('emailInput').value.trim();
+  const pass  = document.getElementById('passInput').value;
+  const btn   = document.getElementById('loginBtn');
+  const err   = document.getElementById('errorBox');
+
+  if(!email || !pass){ showErr('Please enter email and password'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Signing in…';
+  err.classList.remove('show');
+
+  try{
+    await window._signIn(window._auth, email, pass);
+    // onAuthStateChanged will handle redirect
+  } catch(e){
+    let msg = 'Invalid email or password';
+    if(e.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
+    if(e.code === 'auth/network-request-failed') msg = 'Network error. Check connection.';
+    showErr(msg);
+    btn.disabled = false;
+    btn.textContent = 'Sign In →';
+  }
+}
+
+function showErr(msg){
+  const e = document.getElementById('errorBox');
+  e.textContent = msg;
+  e.classList.add('show');
+}
+
+init();
+</script>
+</body>
+</html>
