@@ -1,2 +1,8 @@
-[build]
-  functions = "netlify/functions"
+[functions]
+  directory = "netlify/functions"
+
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
+[functions."shift-alert"]
+  schedule = "30 2 * * *"
