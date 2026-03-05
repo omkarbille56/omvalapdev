@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Valet — Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
@@ -88,8 +91,8 @@ textarea{resize:none;height:64px}
 .tp{background:linear-gradient(135deg,var(--surface2),var(--surface3));border:1px solid var(--gold-dim);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .tn{font-size:19px;font-weight:500;color:var(--gold);letter-spacing:.1em}
 .tl{font-size:10px;color:var(--text-muted);letter-spacing:.18em;text-transform:uppercase}
-.sg{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:11px}
-.slot{aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid transparent}
+.sg{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:11px}
+.slot{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid transparent}
 .slot.av{background:var(--surface3);border-color:var(--border);color:var(--text-muted)}
 .slot.av:hover{border-color:var(--gold-dim);color:var(--gold);background:rgba(201,168,76,.08)}
 .slot.oc{background:rgba(217,79,79,.1);border-color:rgba(217,79,79,.2);color:var(--red);cursor:not-allowed;opacity:.6}
@@ -248,6 +251,78 @@ textarea{resize:none;height:64px}
 .msi-time{font-size:11px;color:var(--text-muted)}
 .today-badge{font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:3px;background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
 
+
+/* ═══ MOBILE / TABLET RESPONSIVE ═══ */
+@media(max-width:900px){
+  .vl{grid-template-columns:1fr;height:auto;overflow:visible}
+  .vr{display:none}
+  .vl .vm{overflow:visible;height:auto}
+  .nav{padding:10px 14px;gap:8px;flex-wrap:wrap}
+  .nav-tabs{flex-wrap:wrap}
+  .nav-tab{padding:6px 10px;font-size:10px}
+  .user-pill{font-size:10px;padding:5px 10px}
+  .vp{padding:14px}
+  .fg{grid-template-columns:1fr;gap:8px}
+  .fr{grid-template-columns:1fr 1fr;gap:8px}
+  .sg{grid-template-columns:repeat(8,1fr)!important;gap:3px}
+  .cc{grid-template-columns:auto 1fr auto;gap:8px}
+  .ca{gap:4px}
+  .ib{width:30px;height:30px;font-size:13px}
+  .al{padding:14px}
+  .ast{grid-template-columns:repeat(3,1fr);gap:8px}
+  .agd{grid-template-columns:1fr;gap:14px}
+  .cr-row{grid-template-columns:1fr}
+  .fat{margin-bottom:16px}
+  .fatr{grid-template-columns:70px 1fr 1fr 80px 80px;font-size:10px;padding:7px 10px;gap:6px}
+  .fatr.hdr>div:nth-child(3){display:none}
+  .fatr>div:nth-child(3){display:none}
+  .rpt-row{grid-template-columns:70px 110px 60px 70px 70px 90px 90px 60px 90px 70px 1fr;font-size:10px}
+  .vlt-row{gap:8px;padding:10px 12px}
+  .shift-assign-row{grid-template-columns:100px 1fr auto;gap:8px}
+  .cal-cell{min-height:70px;padding:4px}
+  .cal-shift-chip{font-size:8px;padding:2px 4px}
+  .agd>.ac{min-width:0}
+  .so{grid-template-columns:1fr 1fr}
+  .tsg{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:600px){
+  .nav{padding:8px 10px}
+  .nav-tabs{gap:2px}
+  .nav-tab{padding:5px 8px;font-size:9px;letter-spacing:.06em}
+  .ll2{font-size:16px;letter-spacing:.2em}
+  .vp{padding:10px}
+  .sg{grid-template-columns:repeat(6,1fr)!important}
+  .slot{font-size:6px!important}
+  .cc{padding:10px 12px;gap:8px}
+  .cp{font-size:14px}
+  .cd{font-size:10px}
+  .ast{grid-template-columns:repeat(2,1fr)}
+  .asn{font-size:24px}
+  .asl{font-size:9px}
+  .fatr{grid-template-columns:60px 1fr 90px 70px;font-size:10px;padding:6px 8px}
+  .fatr.hdr>div:nth-child(3),.fatr.hdr>div:nth-child(4){display:none}
+  .fatr>div:nth-child(3),.fatr>div:nth-child(4){display:none}
+  .rpt-row{grid-template-columns:65px 100px 55px 70px 80px 80px 70px 60px;font-size:9px}
+  .rpt-row>div:nth-child(4),.rpt-row>div:nth-child(5),.rpt-row>div:nth-child(9),.rpt-row>div:nth-child(11){display:none}
+  .rpt-hdr>div:nth-child(4),.rpt-hdr>div:nth-child(5),.rpt-hdr>div:nth-child(9),.rpt-hdr>div:nth-child(11){display:none}
+  .cal-cell{min-height:56px;padding:3px}
+  .cal-day-num{font-size:10px}
+  .cal-shift-chip{display:none}
+  .cal-cell.today::after,.cal-cell[style*='green']::after{content:'●';font-size:8px;display:block;text-align:center}
+  .vlt-row{grid-template-columns:auto 1fr auto auto}
+  .my-shift-card{padding:12px 14px;gap:12px}
+  .msd-day{font-size:22px}
+  .shift-assign-row{grid-template-columns:1fr;gap:6px}
+  .tm{width:95vw!important;max-height:90vh;overflow-y:auto}
+  .tmh h3{font-size:14px}
+  .cr-row{grid-template-columns:1fr}
+  .fr{grid-template-columns:1fr}
+  .so{grid-template-columns:1fr 1fr}
+  .tsg{grid-template-columns:repeat(3,1fr)}
+  .user-pill .up-name{display:none}
+  .up-role{display:none}
+}
+
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 </style>
 </head>
@@ -348,6 +423,21 @@ textarea{resize:none;height:64px}
             </div>
             <button class="btn-cr" id="crBtn" onclick="createValet()">Create Account →</button>
             <div class="cr-res" id="crRes"></div>
+          </div>
+        </div>
+      </div>
+      <!-- SLOT CONFIG -->
+      <div class="ac">
+        <div class="ach"><div class="act">Parking Slot Config</div></div>
+        <div class="acb">
+          <div class="cr-form">
+            <div class="cr-row">
+              <div class="fg2"><label>Row Letters <span style="font-size:9px;color:var(--text-dim)">(comma separated)</span></label><input id="slotRows" placeholder="A, B, C, D" oninput="updateSlotPreview()"></div>
+              <div class="fg2"><label>Slots Per Row</label><input id="slotPerRow" type="number" min="1" max="30" placeholder="10" oninput="updateSlotPreview()"></div>
+            </div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px" id="slotPreview">Preview: —</div>
+            <button class="btn-cr" onclick="saveSlotConfig()">Update Slots →</button>
+            <div class="cr-res" id="slotRes"></div>
           </div>
         </div>
       </div>
@@ -545,7 +635,7 @@ textarea{resize:none;height:64px}
 <script>
 const GUEST_URL='https://magical-marzipan-7b3868.netlify.app/guest.html';
 let cars={},valets={},selSlot=null,coCount=0,_user=null,_isAdmin=false,_modCar=null;
-const SLOTS=(()=>{const s=[];['A','B','C','D'].forEach(r=>{for(let i=1;i<=10;i++)s.push(`${r}-${String(i).padStart(2,'0')}`)});return s;})();
+let SLOTS=[];let _slotsLoaded=false;
 const genOTP=()=>String(Math.floor(1000+Math.random()*9000));
 function wFB(fn){if(window._fbReady)fn();else window.addEventListener('fbReady',fn,{once:true});}
 const fbs=(p,v)=>window._set(window._ref(window._db,p),v);
@@ -580,7 +670,21 @@ function init(){
       } else {
         loadMyShifts();
       }
-      fbl('cars',snap=>{cars=snap.val()||{};genSlots();renderCars();updStats();if(_isAdmin)updAdminStats();});
+      // Load slot config from Firebase
+      fbg('meta/slotConfig').then(snap=>{
+        const cfg = snap.val();
+        if(cfg && cfg.rows && cfg.perRow){
+          SLOTS=[];
+          cfg.rows.split(',').map(r=>r.trim().toUpperCase()).forEach(r=>{
+            for(let i=1;i<=cfg.perRow;i++) SLOTS.push(`${r}-${String(i).padStart(2,'0')}`);
+          });
+        } else {
+          SLOTS=[];['A','B','C','D'].forEach(r=>{for(let i=1;i<=10;i++)SLOTS.push(`${r}-${String(i).padStart(2,'0')}`);});
+        }
+        _slotsLoaded=true;
+        genSlots();
+      });
+      fbl('cars',snap=>{cars=snap.val()||{};if(_slotsLoaded)genSlots();renderCars();updStats();if(_isAdmin)updAdminStats();});
       fbl('meta/checkedOutCount',snap=>{coCount=snap.val()||0;document.getElementById('sCO').textContent=coCount;if(_isAdmin)document.getElementById('aOut').textContent=coCount;});
       fbg('meta/ticketCounter').then(snap=>document.getElementById('ticketNum').textContent=`#V-${(snap.val()||1000)+1}`);
       setTimeout(()=>document.getElementById('loadingScreen').classList.add('hidden'),700);
@@ -695,7 +799,12 @@ function renderCars(){
   document.getElementById('sList2').innerHTML=sch.length?sch.map(c=>`<div class="qi sch"><div class="ql"><div class="qt">${c.id.split('-')[1]}</div><div><div class="qp">${c.plate}</div><div class="qtm">${c.scheduledTime||'—'}</div></div></div><span class="badge bb">SCHED</span></div>`).join(''):`<div style="font-size:12px;color:var(--text-dim);text-align:center;padding:16px 0">No scheduled pickups</div>`;
 }
 
-async function mkReady(id){await fbu(`cars/${id}`,{status:'ready'});ntf('🚗','Car Ready',`${cars[id]?.plate} at porch`);}
+async function mkReady(id){
+  const retrievedBy = _user ? (valets[_user.uid]?.name || _user.email) : '—';
+  const retrievedByUid = _user?.uid || '—';
+  await fbu(`cars/${id}`,{status:'ready', retrievedBy, retrievedByUid});
+  ntf('🚗','Car Ready',`${cars[id]?.plate} at porch`);
+}
 async function doOut(id){
   // Snapshot car data first before any Firebase operations
   const c = JSON.parse(JSON.stringify(cars[id]||{}));
@@ -712,8 +821,8 @@ async function doOut(id){
       ...c,
       timeOut,
       timestampOut: now.toISOString(),
-      retrievedBy: _user ? (valets[_user.uid]?.name || _user.email) : '—',
-      retrievedByUid: _user?.uid || '—',
+      retrievedBy: c.retrievedBy || (valets[_user?.uid]?.name) || '—',
+      retrievedByUid: c.retrievedByUid || _user?.uid || '—',
       status: 'done'
     });
 
@@ -722,8 +831,8 @@ async function doOut(id){
       type:'checkout', ticketId:id, plate:c.plate, guest:c.guest,
       room:c.room, slot:c.slot, make:c.make, model:c.model, color:c.color,
       notes:c.notes, valetUid:c.valetUid, valetName:c.valetName,
-      retrievedBy: _user ? (valets[_user.uid]?.name || _user.email) : '—',
-      retrievedByUid: _user?.uid || '—',
+      retrievedBy: c.retrievedBy || (valets[_user?.uid]?.name) || '—',
+      retrievedByUid: c.retrievedByUid || _user?.uid || '—',
       time:timeOut, timestamp:now.toISOString()
     });
 
@@ -742,6 +851,7 @@ function updStats(){const a=Object.values(cars);document.getElementById('sP').te
 function loadAdmin(){
   fbl('valets',snap=>{valets=snap.val()||{};renderVList();document.getElementById('aVct').textContent=Object.keys(valets).length;});
   setTimeout(()=>loadRangeData(), 600);
+  loadSlotConfig();
   // Show admin scheduler section in shifts view
   const adminSec = document.getElementById('adminScheduleSection');
   if(adminSec) adminSec.style.display='block';
@@ -1420,6 +1530,33 @@ async function saveEditValet(){
   }
 
   btn.disabled=false; btn.textContent='Save Changes →';
+}
+
+// ── Slot Config ──
+async function loadSlotConfig(){
+  const snap = await fbg('meta/slotConfig');
+  const cfg = snap.val();
+  if(cfg){ document.getElementById('slotRows').value=cfg.rows||'A,B,C,D'; document.getElementById('slotPerRow').value=cfg.perRow||10; updateSlotPreview(); }
+}
+function updateSlotPreview(){
+  const rows=(document.getElementById('slotRows')?.value||'').split(',').map(r=>r.trim().toUpperCase()).filter(Boolean);
+  const per=parseInt(document.getElementById('slotPerRow')?.value)||10;
+  if(!rows.length){document.getElementById('slotPreview').textContent='Preview: —';return;}
+  const total=rows.length*per;
+  const ex=`${rows[0]}-01 … ${rows[rows.length-1]}-${String(per).padStart(2,'0')}`;
+  document.getElementById('slotPreview').textContent=`Preview: ${total} slots (${ex})`;
+}
+async function saveSlotConfig(){
+  const rows=(document.getElementById('slotRows').value||'').split(',').map(r=>r.trim().toUpperCase()).filter(Boolean);
+  const per=parseInt(document.getElementById('slotPerRow').value)||10;
+  if(!rows.length){document.getElementById('slotRes').textContent='Enter at least one row letter';document.getElementById('slotRes').className='cr-res err';return;}
+  await fbs('meta/slotConfig',{rows:rows.join(','),perRow:per});
+  SLOTS=[];rows.forEach(r=>{for(let i=1;i<=per;i++)SLOTS.push(`${r}-${String(i).padStart(2,'0')}`);});
+  genSlots();
+  document.getElementById('slotRes').textContent=`✓ ${SLOTS.length} slots saved`;
+  document.getElementById('slotRes').className='cr-res ok';
+  ntf('✓','Slots Updated',`${SLOTS.length} slots across ${rows.length} rows`);
+  setTimeout(()=>{document.getElementById('slotRes').textContent='';document.getElementById('slotRes').className='cr-res';},3000);
 }
 
 init();
