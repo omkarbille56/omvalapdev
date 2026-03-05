@@ -24,7 +24,9 @@ exports.handler = async function(event) {
     return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Invalid phone: ' + phone }) };
   }
 
-  const message = `VALET: Car parked. Ticket:${ticketId} OTP:${otp} Link:${guestLink}`;
+  // Strip any spaces that may have crept into the link
+  const cleanLink = String(guestLink).replace(/\s/g, '');
+  const message = `Valet:Ticket ${ticketId} OTP ${otp} ${cleanLink}`;
   const path = `/dev/bulkV2?authorization=${FAST2SMS_KEY}&route=q&message=${encodeURIComponent(message)}&language=english&flash=0&numbers=${cleanPhone}`;
 
   return new Promise((resolve) => {

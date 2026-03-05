@@ -412,7 +412,7 @@ textarea{resize:none;height:64px}
 <div class="notif" id="notif"><div class="ni" id="nI">✓</div><div class="nt"><strong id="nTi">—</strong><span id="nMs">—</span></div></div>
 
 <script>
-const GUEST_URL='https://spectacular-frangipane-df2562.netlify.app/guest.html';
+const GUEST_URL='https://magical-marzipan-7b3868.netlify.app/guest.html';
 let cars={},valets={},selSlot=null,coCount=0,_user=null,_isAdmin=false,_modCar=null;
 const SLOTS=(()=>{const s=[];['A','B','C','D'].forEach(r=>{for(let i=1;i<=10;i++)s.push(`${r}-${String(i).padStart(2,'0')}`)});return s;})();
 const genOTP=()=>String(Math.floor(1000+Math.random()*9000));
@@ -566,12 +566,29 @@ async function doOut(id){
   const now   = new Date();
   const timeOut = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
   try {
-    // Log checkout activity
-    await fbs(`activity/${today}/${id}_checkout`,{
+    // Save FULL car record to history before deleting
+    const checkinDate = c.timestamp ? c.timestamp.slice(0,10) : today;
+
+    // Write complete record to history node (permanent, never deleted)
+    await fbs(`history/${checkinDate}/${id}`, {
+      ...c,
+      timeOut,
+      timestampOut: now.toISOString(),
+      retrievedBy: _user ? (valets[_user.uid]?.name || _user.email) : '—',
+      retrievedByUid: _user?.uid || '—',
+      status: 'done'
+    });
+
+    // Also log to activity for report engine compatibility
+    await fbs(`activity/${checkinDate}/${id}_checkout`,{
       type:'checkout', ticketId:id, plate:c.plate, guest:c.guest,
-      room:c.room, slot:c.slot, valetUid:c.valetUid, valetName:c.valetName,
+      room:c.room, slot:c.slot, make:c.make, model:c.model, color:c.color,
+      notes:c.notes, valetUid:c.valetUid, valetName:c.valetName,
+      retrievedBy: _user ? (valets[_user.uid]?.name || _user.email) : '—',
+      retrievedByUid: _user?.uid || '—',
       time:timeOut, timestamp:now.toISOString()
     });
+
     // Remove from active cars
     await fbr(`cars/${id}`);
     // Increment checkout counter
@@ -670,14 +687,38 @@ async function loadRangeData(){
   _reportData = {};
   _reportDates = dates;
 
-  // Fetch each date from activity node
   for(const date of dates){
-    const snap = await fbg(`activity/${date}`);
-    const dayData = snap.val()||{};
-    _reportData[date] = dayData;
+    if(!_reportData[date]) _reportData[date]={};
+
+    // 1. Pull from activity log (checkin/checkout events)
+    const actSnap = await fbg(`activity/${date}`);
+    const actData = actSnap.val()||{};
+    Object.assign(_reportData[date], actData);
+
+    // 2. Pull from history node (fully checked-out cars — complete records)
+    const histSnap = await fbg(`history/${date}`);
+    const histData = histSnap.val()||{};
+    // Convert history records into checkin+checkout activity format
+    Object.entries(histData).forEach(([tid, h])=>{
+      // Checkin entry
+      _reportData[date][tid+'_checkin'] = {
+        type:'checkin', ticketId:tid, plate:h.plate, guest:h.guest,
+        room:h.room, make:h.make, model:h.model, color:h.color,
+        slot:h.slot, valetUid:h.valetUid, valetName:h.valetName,
+        time:h.time, timestamp:h.timestamp, notes:h.notes, status:'done'
+      };
+      // Checkout entry
+      _reportData[date][tid+'_checkout'] = {
+        type:'checkout', ticketId:tid, plate:h.plate, guest:h.guest,
+        room:h.room, slot:h.slot, make:h.make, model:h.model, color:h.color,
+        notes:h.notes, valetUid:h.valetUid, valetName:h.valetName,
+        retrievedBy:h.retrievedBy||'—',
+        time:h.timeOut||'—', timestamp:h.timestampOut||''
+      };
+    });
   }
 
-  // Also merge live cars (currently parked — no checkout yet)
+  // 3. Merge live cars (still parked, not checked out yet)
   Object.values(cars).forEach(c=>{
     const date = c.timestamp ? c.timestamp.slice(0,10) : new Date().toISOString().slice(0,10);
     if(!_reportDates.includes(date)) return;
