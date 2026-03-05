@@ -23,6 +23,14 @@
     "meta": {
       ".read": "auth != null",
       ".write": "auth != null"
+    },
+    "shiftTypes": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "shifts": {
+      ".read": "auth != null",
+      ".write": "auth != null"
     }
   }
 }
